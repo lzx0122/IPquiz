@@ -3,22 +3,44 @@ import { ref, watch } from "vue";
 const IPv4 = ref([]);
 const IPv6 = ref([]);
 
+const hideExplanation = ref(true);
+
 const ConvertHandler = () => {
+
+  hideExplanation.value = false;
   IPv6.value[0] = (iP_decToHex(IPv4.value[0]) + iP_decToHex(IPv4.value[1]))
-    .replace(/^0+/, "")
-    .toUpperCase();
+    .replace(/^0+/, "");
   IPv6.value[1] = (iP_decToHex(IPv4.value[2]) + iP_decToHex(IPv4.value[3]))
-    .replace(/^0+/, "")
-    .toUpperCase();
+    .replace(/^0+/, "");
 };
+
+const iP_decToHex_Html = (num) => { 
+  let temp = parseInt(num).toString(2).padStart(8, "0");
+  let part1 = parseInt(temp.slice(0, 4), 2).toString(16).toUpperCase();
+  let part2 = parseInt(temp.slice(4), 2).toString(16).toUpperCase();
+  
+
+
+  return `<div class="flex flex-row justify-around">
+            <div class="text-emerald-500">${part1}</div>
+            <div class="text-red-600">${part2}</div>
+          </div>`
+}
+
+const keydownHandler = () => { 
+  hideExplanation.value = true;
+
+
+}
 
 function iP_decToHex(num) {
   let temp = parseInt(num).toString(2).padStart(8, "0");
   let part1 = temp.slice(0, 4);
   let part2 = temp.slice(4);
-  console.log(temp);
-  return parseInt(part1, 2).toString(16) + parseInt(part2, 2).toString(16);
+  return (parseInt(part1, 2).toString(16) + parseInt(part2, 2).toString(16)).toUpperCase();
 }
+
+
 </script>
 
 <template>
@@ -48,11 +70,41 @@ function iP_decToHex(num) {
             :class="{ 'mr-2': i == 4 }"
             inputmode="numeric"
             onkeyup="value=value.replace(/[^\d]/g,'') "
+            @keydown="keydownHandler()"
           />
           <p class="mx-2" v-if="i != 4">.</p>
         </div>
       </div>
-      <div v-if="IPv6.length != 0">::{{ IPv6.join(":") }}</div>
+      <h4>手機使用者建議 橫向畫面</h4>
+      <div class="flex flex-row justify-center min-w-[100%] w-[600px] max-w-[100%] max-h-[400px]" v-if="!hideExplanation">
+
+        <div class="flex flex-row"v-for="(i, key) in IPv4" :key="key">
+          <div class="flex flex-col">
+            <div class="flex flex-row ">
+                <div class="border-2 px-1" 
+                    v-for="(j, key2) in parseInt(i).toString(2).padStart(8, '0').split('')"
+                    :class="{'border-emerald-500': key2 < 4, 'border-red-600': key2 >= 4}"
+              >
+                {{ j }}
+              </div>
+
+            </div>
+             
+            <div v-html="iP_decToHex_Html(i)">
+              
+            </div>
+          </div>
+          
+          <div class="mx-1" v-if="key != 3"><div>.</div> <div v-if="key == 1">:</div></div>
+          
+        </div>
+        
+      </div>
+      <div v-if="!hideExplanation">
+        <div class="mt-2">記得最簡表示： 把最左邊的 0 都去掉</div>
+        <div class="mt-2" v-if="IPv6.length != 0">::{{ IPv6.join(":") }}</div>
+      </div>
+     
     </div>
   </div>
 </template>
